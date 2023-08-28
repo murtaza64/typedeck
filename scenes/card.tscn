@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://b0vkgg3aovdh0"]
+
+[ext_resource type="Script" path="res://scenes/card.gd" id="1_ydocm"]
+[ext_resource type="Texture2D" uid="uid://bcdhnb4hg52l3" path="res://graphics/card_base_corner.png" id="2_wsfkk"]
+[ext_resource type="PackedScene" uid="uid://dutmcfcwxax65" path="res://scenes/text_input.tscn" id="2_x5q6u"]
+
+[sub_resource type="SystemFont" id="SystemFont_mddy4"]
+font_names = PackedStringArray("UbuntuMono Nerd Font")
+
+[sub_resource type="LabelSettings" id="LabelSettings_7jdka"]
+resource_local_to_scene = true
+font = SubResource("SystemFont_mddy4")
+font_size = 48
+
+[node name="card" type="Node2D"]
+position = Vector2(800, 448)
+script = ExtResource("1_ydocm")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, 2)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_wsfkk")
+
+[node name="instructions" type="Label" parent="."]
+offset_left = -464.0
+offset_top = -222.0
+offset_right = -128.0
+offset_bottom = -170.0
+text = "Type the words"
+label_settings = SubResource("LabelSettings_7jdka")
+
+[node name="text_input" parent="." instance=ExtResource("2_x5q6u")]
+position = Vector2(-672, -16)

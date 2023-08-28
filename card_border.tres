@@ -1,0 +1,19 @@
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://85g4rc4xbnwf"]
+
+[ext_resource type="Texture2D" uid="uid://c8m7pb2mi50fk" path="res://graphics/card_border.png" id="1_whse7"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_vm3xp"]
+resource_name = "card_border"
+texture = ExtResource("1_whse7")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+0:2/0 = 0
+1:2/0 = 0
+2:2/0 = 0
+
+[resource]
+sources/1 = SubResource("TileSetAtlasSource_vm3xp")
