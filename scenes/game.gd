@@ -4,16 +4,38 @@ var cards_queue = []
 var cards_discarded = []
 var rng = RandomNumberGenerator.new()
 
-const CENTER_X = 1920 / 2
-const CENTER_Y = 1080 / 2
+var card_scene = load("res://scenes/card.tscn")
+var card_alphabet_scene = load("res://scenes/card_alphabet.tscn")
+var card_reverse_scene = load("res://scenes/card_reverse.tscn")
+var card_math_scene = load("res://scenes/card_math.tscn")
+var deck = [
+	card_scene,
+	# card_scene,
+	# card_scene,
+]
+
+var pool = [
+	card_scene,
+	card_alphabet_scene,
+	card_reverse_scene,
+	card_math_scene
+]
+
+const CENTER_X = 1920 / 2.0
+const CENTER_Y = 1080 / 2.0
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	generate_and_deal_deck()
 
+func animate_card_drop(card, delay = 0.0):
+	var tween = get_tree().create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_interval(delay)
+	tween.tween_property(card, "position", Vector2(CENTER_X - 100, CENTER_Y), 0.3)
+
 func generate_and_deal_deck():
-	var card_scene = load("res://scenes/card.tscn")
-	for c in range(10):
-		var card = card_scene.instantiate()
+	for i in len(deck):
+		var card = deck[i].instantiate()
 		cards_queue.append(card)
 		add_child(card)
 		var angle_offset = rng.randf_range(-2.5, 2.5)
@@ -21,13 +43,28 @@ func generate_and_deal_deck():
 		card.position = Vector2(CENTER_X - 100, -600)
 		card.init()
 		card.card_done.connect(_on_card_completed)
-		
-		var tween = get_tree().create_tween()
-		tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-		tween.tween_interval(c*0.1)
-		tween.tween_property(card, "position", Vector2(CENTER_X - 100, CENTER_Y), 0.3)
+		animate_card_drop(card, 0.1 * i)
 	
 	select_next_card()
+
+func animate_clear_discard_pile():
+	for i in len(cards_discarded):
+		var tween = get_tree().create_tween()
+		tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
+		tween.tween_interval((len(cards_discarded) - i - 1) * 0.05)
+		tween.tween_property(cards_discarded[i], "position", Vector2(1800, -600), 0.5)
+
+func add_card_to_deck():
+	var sc = pool[rng.randi_range(0, len(pool) - 1)]
+	deck.append(sc)
+	var card = sc.instantiate()
+	add_child(card)
+	card.position = Vector2(CENTER_X - 100, -600)
+	card.init()
+	card.get_node("card_back/new_banner").show()
+	animate_card_drop(card)
+	card.set_active()
+	card.card_done.connect(_on_new_card_completed)
 
 
 func select_next_card():
@@ -41,9 +78,7 @@ func select_next_card():
 func _process(delta):
 	pass
 
-func _on_card_completed(card, success):
-	print("card completed!", success)
-	
+func animate_card_discard(card):
 	move_child(card, -1)
 
 	var angle_offset = rng.randf_range(-10, 10)
@@ -61,10 +96,24 @@ func _on_card_completed(card, success):
 	# tween.set_parallel(false)
 	# tween.tween_callback(move_child.bind(card, -1))
 
+func _on_new_card_completed(card, success):
+	animate_card_discard(card)
+	cards_discarded.append(card)
+
+	var banner = card.get_node("card_back/new_banner")
+	var tween = get_tree().create_tween()
+	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(banner, "modulate:a", 0.0, 0.8)
+	tween.tween_callback(banner.hide)
+	tween.tween_interval(0.5)
+	tween.tween_callback(animate_clear_discard_pile)
+
+func _on_card_completed(card, success):
+	animate_card_discard(card)	
 	cards_discarded.append(card)
 
 	cards_queue.pop_back()
 	if cards_queue:
 		select_next_card()
 	else:
-		generate_and_deal_deck()
+		add_card_to_deck()

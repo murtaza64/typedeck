@@ -5,10 +5,13 @@ signal completed_typing
 
 var state = STATE.INACTIVE
 var letter_scene = load("res://scenes/letter.tscn")
-var letters = []
+var hint_letters = []
+var target_letters = []
 var errors = []
 var cursor_pos = 0
-var text
+var target_text
+
+var target_chars_variants = {}
 
 const PADDING_LEFT = 30
 const PADDING_TOP = 5
@@ -21,70 +24,97 @@ func _ready():
 
 const CHAR_WIDTH = 24
 const CHAR_HEIGHT = 52
+
+func init(text: String, max_width: int, ghost = true, variants = null):
+	target_text = text
+	var lines = split_text_into_lines(target_text, max_width)
+	var letter_lines = create_letters(lines, ghost)
+	var dims = place_letters(letter_lines, 0)
+	draw_background(0, dims[0], 0, dims[1])
+	if variants != null:
+		print(variants)
+		target_chars_variants = variants
+	update_cursor_pos()
+	return dims
+
 func calc_letters_per_line(max_width):
 	return (max_width - PADDING_LEFT - PADDING_RIGHT) / CHAR_WIDTH
 
-func build_layout(text, max_width):
-	print(text)
+func split_text_into_lines(text, max_width):
 	var words = text.split(" ")
 	var max_chars_per_line = calc_letters_per_line(max_width)
-	print(max_chars_per_line)
 	var lines: PackedStringArray = []
 	var current_line = ""
-	var max_line_width = 0
 
 	for word in words:
 		print(word)
 		if len(current_line) + len(word) + 1 > max_chars_per_line:
 			lines.append(current_line)
-			max_line_width = max(max_line_width, len(current_line))
 			current_line = ""
 		current_line += word + " "
 
 	if current_line != "":
+		# last line should not have a trailing space
+		current_line = current_line.rstrip(" ")
 		lines.append(current_line)
-		max_line_width = max(max_line_width, len(current_line))
-	
-	# -1 accounts for space at end of line
-	var width = (max_line_width - 1) * CHAR_WIDTH + PADDING_LEFT + PADDING_RIGHT
-	var height = PADDING_TOP + len(lines) * CHAR_HEIGHT + PADDING_BOTTOM
-	var center_x = width/2.0
+	else:
+		lines[-1] = lines[-1].rstrip(" ")
 	print(lines)
+	return lines
 
-	for line_i in len(lines):
-		var line = lines[line_i]
-		var line_width = (len(line) - 1) * CHAR_WIDTH
+func max_line_width_ignore_trailing_spaces(letter_lines):
+	var max_line_width = 0
+	for line in letter_lines:
+		if line[-1].target == " ":
+			max_line_width = max(max_line_width, len(line) - 1)
+		else:
+			max_line_width = max(max_line_width, len(line))
+	return max_line_width
+
+func place_letters(letter_lines, start_y):
+	var max_line_width = max_line_width_ignore_trailing_spaces(letter_lines)
+	print(max_line_width)
+	var width = max_line_width * CHAR_WIDTH + PADDING_LEFT + PADDING_RIGHT
+	var height = PADDING_TOP + len(letter_lines) * CHAR_HEIGHT + PADDING_BOTTOM
+	var center_x = width/2.0
+
+	for letter_line_i in len(letter_lines):
+		var letter_line = letter_lines[letter_line_i]
+		var line_width = len(letter_line) * CHAR_WIDTH
 		var offset_x = center_x - line_width/2.0
-		var offset_y = PADDING_TOP + line_i * CHAR_HEIGHT
+		var offset_y = start_y + PADDING_TOP + letter_line_i * CHAR_HEIGHT
+		for l in letter_line:
+			l.position.x = offset_x
+			l.position.y = offset_y
+			offset_x += CHAR_WIDTH
+
+	return [width, height]
+
+func draw_background(start_x, width, start_y, height):
+	$background.polygon = [
+		Vector2(start_x, start_y),
+		Vector2(start_x, start_y + height),
+		Vector2(start_x + width, start_y + height),
+		Vector2(start_x + width, start_y),
+	]
+	$background.color = Catppuccin.mantle
+
+
+func create_letters(lines, ghost):
+	var letters = []
+	for line in lines:
+		var line_letters = []
 		for c in line:
 			var l = letter_scene.instantiate()
 			add_child(l)
-
-			l.position.x = offset_x
-			l.position.y = offset_y
-			l.set_untyped(c)
-
-			offset_x += CHAR_WIDTH
-
-			letters.append(l)
-
-	# deal with last space
-	letters.pop_back()
-
-	$background.polygon = [
-		Vector2(0, 0),
-		Vector2(0, height),
-		Vector2(width, height),
-		Vector2(width, 0),
-	]
-	$background.color = Catppuccin.mantle
-	
-
-
-func init(text_: String, max_width: int):
-	text = text_
-	build_layout(text, max_width)
-	update_cursor_pos()
+			l.set_target(c)
+			l.ghost = ghost
+			l.set_untyped()
+			line_letters.append(l)
+			target_letters.append(l)
+		letters.append(line_letters)
+	print(letters)
+	return letters
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
@@ -121,7 +151,8 @@ var lowercase = {
 	KEY_Y: "y",
 	KEY_Z: "z",
 
-	KEY_SPACE: " "
+	KEY_SPACE: " ",
+	KEY_MINUS: "-",
 }
 
 func is_correct_key_pressed(event):
@@ -131,9 +162,22 @@ func is_correct_key_pressed(event):
 		return false
 	if event.keycode not in lowercase:
 		return false
-	if cursor_pos >= len(text):
+	if cursor_pos >= len(target_text):
 		return false
-	return lowercase[event.keycode] == text[cursor_pos]
+	return lowercase[event.keycode] == target_text[cursor_pos]
+
+func is_variant_key_pressed(event):
+	if not (event is InputEventKey):
+		return false
+	if not event.pressed:
+		return false
+	if event.keycode not in lowercase:
+		return false
+	if cursor_pos >= len(target_text):
+		return false
+	if cursor_pos not in target_chars_variants:
+		return false
+	return lowercase[event.keycode] in target_chars_variants[cursor_pos]
 
 func is_incorrect_key_pressed(event):
 	if not (event is InputEventKey):
@@ -142,13 +186,13 @@ func is_incorrect_key_pressed(event):
 		return false
 	if event.keycode not in lowercase:
 		return false
-	if cursor_pos >= len(text):
+	if cursor_pos >= len(target_text):
 		return false
-	return lowercase[event.keycode] != text[cursor_pos]
+	return lowercase[event.keycode] != target_text[cursor_pos]
 
 func update_cursor_pos():
-	if cursor_pos < len(letters):
-		var l = letters[cursor_pos]
+	if cursor_pos < len(target_letters):
+		var l = target_letters[cursor_pos]
 		$cursor.position.x = l.position.x
 		
 		$cursor.get_node("Polygon2D").polygon = [
@@ -170,23 +214,37 @@ func _unhandled_input(event):
 	match state:
 		STATE.TYPING:
 			if is_correct_key_pressed(event):
-				letters[cursor_pos].set_typed()
+				target_letters[cursor_pos].set_typed()
 				cursor_pos += 1
-				if cursor_pos >= len(letters) and not errors:
+				$AudioStreamPlayer.play()
+				if cursor_pos >= len(target_letters) and not errors:
 					state = STATE.COMPLETED
 					$cursor.hide()
 					completed_typing.emit()
 				else:
 					update_cursor_pos()
+			elif is_variant_key_pressed(event):
+				target_letters[cursor_pos].set_typed(
+					lowercase[event.keycode]
+				)
+				cursor_pos += 1
+				$AudioStreamPlayer.play()
+				if cursor_pos >= len(target_letters) and not errors:
+					state = STATE.COMPLETED
+					$cursor.hide()
+					completed_typing.emit()
+				else:
+					update_cursor_pos()
+
 			elif is_backspace_pressed(event):
 				if cursor_pos > 0:
 					cursor_pos -= 1
 					if cursor_pos in errors:
 						errors.erase(cursor_pos)
-					letters[cursor_pos].set_untyped(text[cursor_pos])
+					target_letters[cursor_pos].set_untyped()
 					update_cursor_pos()
 			elif is_incorrect_key_pressed(event):
-				letters[cursor_pos].set_incorrect(lowercase[event.keycode])
+				target_letters[cursor_pos].set_incorrect(lowercase[event.keycode])
 				errors.append(cursor_pos)
 				cursor_pos += 1
 				update_cursor_pos()

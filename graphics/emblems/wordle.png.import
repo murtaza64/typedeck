@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dedxnndk4cbj4"
-path="res://.godot/imported/emblem_wordle_16.png-e1140e43237036c4b1a44766bdeb827a.ctex"
+path="res://.godot/imported/wordle.png-6d940b2bcd2ce635802d589b6426c3f2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://graphics/emblem_wordle_16.png"
-dest_files=["res://.godot/imported/emblem_wordle_16.png-e1140e43237036c4b1a44766bdeb827a.ctex"]
+source_file="res://graphics/emblems/wordle.png"
+dest_files=["res://.godot/imported/wordle.png-6d940b2bcd2ce635802d589b6426c3f2.ctex"]
 
 [params]
 

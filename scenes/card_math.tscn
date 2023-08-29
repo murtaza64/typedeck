@@ -1,10 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://b0vkgg3aovdh0"]
+[gd_scene load_steps=8 format=3 uid="uid://ckqduc8wu6naw"]
 
-[ext_resource type="Script" path="res://scenes/card.gd" id="1_ydocm"]
-[ext_resource type="PackedScene" uid="uid://vy2mdobs1rlm" path="res://scenes/card_back.tscn" id="2_1fyar"]
-[ext_resource type="Texture2D" uid="uid://cfbg5pdaemhap" path="res://graphics/card_center_emblem.png" id="2_5qdp1"]
-[ext_resource type="PackedScene" uid="uid://dutmcfcwxax65" path="res://scenes/text_input.tscn" id="2_x5q6u"]
-[ext_resource type="Texture2D" uid="uid://c40llrm4aikxf" path="res://graphics/emblems/keyboard.png" id="3_ow3tw"]
+[ext_resource type="Script" path="res://scenes/card_math.gd" id="1_wpugh"]
+[ext_resource type="PackedScene" uid="uid://vy2mdobs1rlm" path="res://scenes/card_back.tscn" id="2_gmrtw"]
+[ext_resource type="Texture2D" uid="uid://ta6pnrnukphw" path="res://graphics/emblems/calc.png" id="3_7ao2q"]
+[ext_resource type="PackedScene" uid="uid://dutmcfcwxax65" path="res://scenes/text_input.tscn" id="4_aj8y2"]
 
 [sub_resource type="SystemFont" id="SystemFont_mddy4"]
 font_names = PackedStringArray("UbuntuMono Nerd Font")
@@ -21,22 +20,16 @@ font_size = 48
 
 [node name="card" type="Node2D"]
 position = Vector2(800, 450)
-script = ExtResource("1_ydocm")
+script = ExtResource("1_wpugh")
 
-[node name="card_back" parent="." instance=ExtResource("2_1fyar")]
+[node name="card_back" parent="." instance=ExtResource("2_gmrtw")]
 position = Vector2(0, 0)
-
-[node name="card_bg" type="Sprite2D" parent="."]
-visible = false
-position = Vector2(-3, 9)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("2_5qdp1")
 
 [node name="emblem" type="Sprite2D" parent="."]
 texture_filter = 1
 position = Vector2(0, -364)
 scale = Vector2(8, 8)
-texture = ExtResource("3_ow3tw")
+texture = ExtResource("3_7ao2q")
 
 [node name="instructions" type="Label" parent="."]
 offset_left = -464.0
@@ -52,5 +45,5 @@ offset_right = -463.0
 offset_bottom = 33.0
 label_settings = SubResource("LabelSettings_5afte")
 
-[node name="text_input" parent="." instance=ExtResource("2_x5q6u")]
+[node name="text_input" parent="." instance=ExtResource("4_aj8y2")]
 position = Vector2(-672, -16)

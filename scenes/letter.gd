@@ -1,22 +1,32 @@
 extends Node2D
 
-var label
 var target
-# Called when the node enters the scene tree for the first time.
+var ghost = true
+
 func _ready():
-	label = get_node("Label")
+	pass
 
-func set_typed():
+func set_typed(char = null):
 	# print("set typed")
-	label.label_settings.font_color = Catppuccin.text
+	$label.label_settings.font_color = Catppuccin.text
+	if char != null:
+		$label.text = char
+	else:
+		$label.text = target
 
-func set_untyped(char):
-	label.label_settings.font_color = Catppuccin.surface2
-	label.text = char
+func set_target(char):
+	target = char
+
+func set_untyped():
+	if ghost:
+		$label.label_settings.font_color = Catppuccin.surface2
+		$label.text = target
+	else:
+		$label.text = " "
 
 func set_incorrect(char):
-	label.label_settings.font_color = Catppuccin.red
-	label.text = char
+	$label.label_settings.font_color = Catppuccin.red
+	$label.text = char
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):

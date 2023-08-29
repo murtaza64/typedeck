@@ -1,0 +1,43 @@
+[gd_scene load_steps=8 format=3 uid="uid://quasg32jqp2a"]
+
+[ext_resource type="Script" path="res://scenes/card_alphabet.gd" id="1_3uxb2"]
+[ext_resource type="PackedScene" uid="uid://vy2mdobs1rlm" path="res://scenes/card_back.tscn" id="2_mso0w"]
+[ext_resource type="Texture2D" uid="uid://c507vdug53ccp" path="res://graphics/emblems/abc.png" id="3_d3h4n"]
+[ext_resource type="PackedScene" uid="uid://dutmcfcwxax65" path="res://scenes/text_input.tscn" id="3_nbwh6"]
+[ext_resource type="Texture2D" uid="uid://cq6qk8w7xobt1" path="res://graphics/new_banner.png" id="6_wau72"]
+
+[sub_resource type="SystemFont" id="SystemFont_mddy4"]
+font_names = PackedStringArray("UbuntuMono Nerd Font")
+
+[sub_resource type="LabelSettings" id="LabelSettings_7jdka"]
+resource_local_to_scene = true
+font = SubResource("SystemFont_mddy4")
+font_size = 48
+
+[node name="card" type="Node2D"]
+position = Vector2(800, 450)
+script = ExtResource("1_3uxb2")
+
+[node name="card_back" parent="." instance=ExtResource("2_mso0w")]
+position = Vector2(0, 0)
+
+[node name="emblem" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(0, -364)
+scale = Vector2(8, 8)
+texture = ExtResource("3_d3h4n")
+
+[node name="instructions" type="Label" parent="."]
+offset_left = -464.0
+offset_top = -222.0
+offset_right = -463.0
+offset_bottom = -173.0
+label_settings = SubResource("LabelSettings_7jdka")
+
+[node name="text_input" parent="." instance=ExtResource("3_nbwh6")]
+position = Vector2(-672, -16)
+
+[node name="new_banner" type="Sprite2D" parent="."]
+position = Vector2(-600, -248)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("6_wau72")
