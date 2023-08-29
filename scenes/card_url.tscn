@@ -1,10 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://dqw8an2rkw3wb"]
+[gd_scene load_steps=9 format=3 uid="uid://c2pbkbt802r7n"]
 
-[ext_resource type="Script" path="res://scenes/card_reverse.gd" id="1_kx5t0"]
-[ext_resource type="PackedScene" uid="uid://vy2mdobs1rlm" path="res://scenes/card_back.tscn" id="2_t5w0o"]
-[ext_resource type="PackedScene" uid="uid://dutmcfcwxax65" path="res://scenes/text_input.tscn" id="3_nbwh6"]
-[ext_resource type="Texture2D" uid="uid://bno116jroi2gu" path="res://graphics/emblems/rewind.png" id="3_nr1ou"]
-[ext_resource type="Texture2D" uid="uid://dkfh6unrhtynk" path="res://graphics/glyphs/reverse_helper.png" id="5_5oou7"]
+[ext_resource type="Script" path="res://scenes/card_url.gd" id="1_umwpj"]
+[ext_resource type="PackedScene" uid="uid://vy2mdobs1rlm" path="res://scenes/card_back.tscn" id="2_tae6w"]
+[ext_resource type="Texture2D" uid="uid://cfbg5pdaemhap" path="res://graphics/card_center_emblem.png" id="3_1y0jf"]
+[ext_resource type="Texture2D" uid="uid://b0dpk0kxb6mp" path="res://graphics/emblems/web.png" id="4_cybps"]
+[ext_resource type="PackedScene" uid="uid://dutmcfcwxax65" path="res://scenes/text_input.tscn" id="5_haaul"]
 
 [sub_resource type="SystemFont" id="SystemFont_mddy4"]
 font_names = PackedStringArray("UbuntuMono Nerd Font")
@@ -21,16 +21,22 @@ font_size = 48
 
 [node name="card" type="Node2D"]
 position = Vector2(800, 450)
-script = ExtResource("1_kx5t0")
+script = ExtResource("1_umwpj")
 
-[node name="card_back" parent="." instance=ExtResource("2_t5w0o")]
+[node name="card_back" parent="." instance=ExtResource("2_tae6w")]
 position = Vector2(0, 0)
+
+[node name="card_bg" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(-3, 9)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_1y0jf")
 
 [node name="emblem" type="Sprite2D" parent="."]
 texture_filter = 1
 position = Vector2(0, -364)
 scale = Vector2(8, 8)
-texture = ExtResource("3_nr1ou")
+texture = ExtResource("4_cybps")
 
 [node name="instructions" type="Label" parent="."]
 offset_left = -464.0
@@ -46,11 +52,5 @@ offset_right = -463.0
 offset_bottom = 33.0
 label_settings = SubResource("LabelSettings_5afte")
 
-[node name="text_input" parent="." instance=ExtResource("3_nbwh6")]
+[node name="text_input" parent="." instance=ExtResource("5_haaul")]
 position = Vector2(-672, -16)
-
-[node name="reverse_helper" type="Sprite2D" parent="."]
-position = Vector2(272, -48)
-scale = Vector2(0.25, 0.25)
-texture = ExtResource("5_5oou7")
-centered = false

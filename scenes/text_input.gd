@@ -35,6 +35,7 @@ func init(text: String, max_width: int, ghost = true, variants = null):
 		print(variants)
 		target_chars_variants = variants
 	update_cursor_pos()
+	$cursor.modulate = Catppuccin.text
 	return dims
 
 func calc_letters_per_line(max_width):
@@ -123,84 +124,10 @@ func _process(delta):
 func set_active():
 	state = STATE.TYPING
 
-var lowercase = {
-	KEY_A: "a",
-	KEY_B: "b",
-	KEY_C: "c",
-	KEY_D: "d",
-	KEY_E: "e",
-	KEY_F: "f",
-	KEY_G: "g",
-	KEY_H: "h",
-	KEY_I: "i",
-	KEY_J: "j",
-	KEY_K: "k",
-	KEY_L: "l",
-	KEY_M: "m",
-	KEY_N: "n",
-	KEY_O: "o",
-	KEY_P: "p",
-	KEY_Q: "q",
-	KEY_R: "r",
-	KEY_S: "s",
-	KEY_T: "t",
-	KEY_U: "u",
-	KEY_V: "v",
-	KEY_W: "w",
-	KEY_X: "x",
-	KEY_Y: "y",
-	KEY_Z: "z",
-
-	KEY_SPACE: " ",
-	KEY_MINUS: "-",
-}
-
-func is_correct_key_pressed(event):
-	if not (event is InputEventKey):
-		return false
-	if not event.pressed:
-		return false
-	if event.keycode not in lowercase:
-		return false
-	if cursor_pos >= len(target_text):
-		return false
-	return lowercase[event.keycode] == target_text[cursor_pos]
-
-func is_variant_key_pressed(event):
-	if not (event is InputEventKey):
-		return false
-	if not event.pressed:
-		return false
-	if event.keycode not in lowercase:
-		return false
-	if cursor_pos >= len(target_text):
-		return false
-	if cursor_pos not in target_chars_variants:
-		return false
-	return lowercase[event.keycode] in target_chars_variants[cursor_pos]
-
-func is_incorrect_key_pressed(event):
-	if not (event is InputEventKey):
-		return false
-	if not event.pressed:
-		return false
-	if event.keycode not in lowercase:
-		return false
-	if cursor_pos >= len(target_text):
-		return false
-	return lowercase[event.keycode] != target_text[cursor_pos]
-
 func update_cursor_pos():
 	if cursor_pos < len(target_letters):
 		var l = target_letters[cursor_pos]
 		$cursor.position.x = l.position.x
-		
-		$cursor.get_node("Polygon2D").polygon = [
-			Vector2(0, 0),
-			Vector2(CHAR_WIDTH, 0),
-			Vector2(CHAR_WIDTH, 5),
-			Vector2(0, 5),
-		]
 		$cursor.position.y = l.position.y + CHAR_HEIGHT
 	else:
 		$cursor.position.x += 24
@@ -211,22 +138,21 @@ func is_backspace_pressed(event):
 		and event.keycode == KEY_BACKSPACE
 
 func _unhandled_input(event):
+	if not (event is InputEventKey):
+		return false
+	if not event.pressed:
+		return false
 	match state:
 		STATE.TYPING:
-			if is_correct_key_pressed(event):
-				target_letters[cursor_pos].set_typed()
-				cursor_pos += 1
-				$AudioStreamPlayer.play()
-				if cursor_pos >= len(target_letters) and not errors:
-					state = STATE.COMPLETED
-					$cursor.hide()
-					completed_typing.emit()
-				else:
-					update_cursor_pos()
-			elif is_variant_key_pressed(event):
-				target_letters[cursor_pos].set_typed(
-					lowercase[event.keycode]
-				)
+			var pressed_char = Keyboard.event_get_char(event)
+
+			if cursor_pos < len(target_letters) and (
+					pressed_char == target_text[cursor_pos]
+					or cursor_pos in target_chars_variants
+					and	pressed_char in target_chars_variants[cursor_pos]
+				):
+
+				target_letters[cursor_pos].set_typed(pressed_char)
 				cursor_pos += 1
 				$AudioStreamPlayer.play()
 				if cursor_pos >= len(target_letters) and not errors:
@@ -236,18 +162,17 @@ func _unhandled_input(event):
 				else:
 					update_cursor_pos()
 
-			elif is_backspace_pressed(event):
+			elif event.keycode == KEY_BACKSPACE:
 				if cursor_pos > 0:
 					cursor_pos -= 1
 					if cursor_pos in errors:
 						errors.erase(cursor_pos)
 					target_letters[cursor_pos].set_untyped()
 					update_cursor_pos()
-			elif is_incorrect_key_pressed(event):
-				target_letters[cursor_pos].set_incorrect(lowercase[event.keycode])
+
+			elif cursor_pos < len(target_letters) and pressed_char != "":
+				target_letters[cursor_pos].set_incorrect(pressed_char)
 				errors.append(cursor_pos)
 				cursor_pos += 1
 				update_cursor_pos()
 			get_viewport().set_input_as_handled()
-
-

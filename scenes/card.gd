@@ -6,6 +6,7 @@ const WIDTH = 1600
 const TEXT_INPUT_MAX_WIDTH = 1200
 const CHAR_WIDTH = 24
 const CHAR_HEIGHT = 52
+const WORDS_PER_CARD = 5
 
 var en10k = FileAccess.open("res://dictionaries/google-10000-english-usa.txt", FileAccess.READ). \
 	get_as_text().split("\n")
@@ -21,11 +22,11 @@ func _ready():
 
 func init():
 	var selected_words: PackedStringArray = []
-	for i in range(3):
+	for i in range(WORDS_PER_CARD):
 		selected_words.append(en1k[rng.randi_range(0, 999)])
 	var text = " ".join(selected_words)
 	set_text_input(text)
-	set_instructions("Type words")
+	set_instructions("Type the words")
 	# set_prompt(text)
 
 func set_text_input(text, ghost = true, variants = null):

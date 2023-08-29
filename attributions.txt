@@ -1,0 +1,3 @@
+en10k: https://github.com/first20hours/google-10000-english/blob/master/google-10000-english-usa.txt
+pangrams: https://clagnut.com/blog/2380#Longer_pangrams_in_English_.28in_order_of_fewest_letters_used.29
+quotes: wikiquotes, https://pypi.org/project/langdetect/, https://github.com/federicotdn/wikiquote

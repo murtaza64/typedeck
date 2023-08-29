@@ -8,17 +8,34 @@ var card_scene = load("res://scenes/card.tscn")
 var card_alphabet_scene = load("res://scenes/card_alphabet.tscn")
 var card_reverse_scene = load("res://scenes/card_reverse.tscn")
 var card_math_scene = load("res://scenes/card_math.tscn")
+var card_url_scene = load("res://scenes/card_url.tscn")
+var card_pangram_scene = load("res://scenes/card_pangram.tscn")
+var card_quote_scene = load("res://scenes/card_quote.tscn")
+
 var deck = [
 	card_scene,
-	# card_scene,
-	# card_scene,
+	card_scene,
+	card_scene,
 ]
 
-var pool = [
-	card_scene,
+var card_pool = [
+	# card_scene,
 	card_alphabet_scene,
 	card_reverse_scene,
-	card_math_scene
+	card_math_scene,
+	card_url_scene,
+	card_pangram_scene,
+	card_quote_scene,
+]
+
+var card_pool_weights = [
+	# 1,
+	1,
+	1,
+	1,
+	2,
+	1,
+	1,
 ]
 
 const CENTER_X = 1920 / 2.0
@@ -34,6 +51,7 @@ func animate_card_drop(card, delay = 0.0):
 	tween.tween_property(card, "position", Vector2(CENTER_X - 100, CENTER_Y), 0.3)
 
 func generate_and_deal_deck():
+	deck.shuffle()
 	for i in len(deck):
 		var card = deck[i].instantiate()
 		cards_queue.append(card)
@@ -48,14 +66,18 @@ func generate_and_deal_deck():
 	select_next_card()
 
 func animate_clear_discard_pile():
-	for i in len(cards_discarded):
+	var i = 0
+	while cards_discarded:
+		var top_card = cards_discarded.pop_back()
 		var tween = get_tree().create_tween()
 		tween.set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_CUBIC)
-		tween.tween_interval((len(cards_discarded) - i - 1) * 0.05)
-		tween.tween_property(cards_discarded[i], "position", Vector2(1800, -600), 0.5)
+		tween.tween_interval(i * 0.05)
+		tween.tween_property(top_card, "position", Vector2(1800, -600), 0.5)
+		tween.tween_callback(top_card.queue_free)
+		i += 1
 
 func add_card_to_deck():
-	var sc = pool[rng.randi_range(0, len(pool) - 1)]
+	var sc = Util.random_choice_weighted(card_pool, card_pool_weights)
 	deck.append(sc)
 	var card = sc.instantiate()
 	add_child(card)
@@ -105,8 +127,10 @@ func _on_new_card_completed(card, success):
 	tween.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
 	tween.tween_property(banner, "modulate:a", 0.0, 0.8)
 	tween.tween_callback(banner.hide)
-	tween.tween_interval(0.5)
+	tween.tween_interval(0.1)
 	tween.tween_callback(animate_clear_discard_pile)
+	tween.tween_interval(0.5)
+	tween.tween_callback(generate_and_deal_deck)
 
 func _on_card_completed(card, success):
 	animate_card_discard(card)	
